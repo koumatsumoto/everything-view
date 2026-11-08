@@ -19,7 +19,7 @@
   "type": "module",
   "scripts": {
     "dev": "vp build --watch",
-    "build": "vp build && vp pack && node scripts/licenses.mjs",
+    "build": "vp build && vp pack && node scripts/assets.mjs && node scripts/licenses.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "vp lint",
     "format": "vp fmt",

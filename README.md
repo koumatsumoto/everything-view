@@ -55,7 +55,7 @@ other Host headers, including the numeric IP hostname, are intentionally rejecte
   At most 40 image/stylesheet resources are considered per document. Preview links
   are disabled. To deliberately run an HTML file, use **Open HTML in external
   browser**. That external browser is outside EV's preview restrictions.
-- PDF.js and its worker are bundled. Pages are canvas-only, without annotation
+- PDF.js, its worker, CMaps, standard fonts, and WASM decoders are bundled. Pages are canvas-only, without annotation
   links, actions, JavaScript, XFA, or attachments. Enormous pages are rejected.
 - Git changes, new files, deleted paths, and containing folders share one accent
   color. There is no separate changes list. A top inside a repository detects the
@@ -134,7 +134,7 @@ boundary and HTTP server. `src/web/` contains framework-free TypeScript/CSS/HTML
 `tests/` covers scope/HTTP/Git and browser flows. `scripts/` verifies packaging and
 retains licenses. `dist/` is generated and ignored by Git.
 
-The tarball contains `dist/cli.mjs`, built web assets, the PDF.js worker, and full
+The tarball contains `dist/cli.mjs`, built web assets, the PDF.js worker/CMaps/fonts/WASM, and full
 third-party licenses. There are **no runtime npm dependencies** and no CDN use.
 The first release deliberately omits fuzzy CLI paths, editing, remote access,
 persistent servers, and a separate changed-files view. Requirements: [issue #1](https://github.com/koumatsumoto/everything-view/issues/1).

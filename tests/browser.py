@@ -84,7 +84,7 @@ with tempfile.TemporaryDirectory(prefix="ev-browser-") as temp:
             frame = page.frame_locator("iframe.document-preview")
             expect(frame.locator("h1")).to_have_text("Isolated HTML")
             expect(frame.locator("img").first).to_have_attribute("src", re.compile("^data:image/png;base64,"))
-            assert frame.locator("body").evaluate("node => getComputedStyle(node).color") == "rgb(10, 20, 30)", "Local CSS missing"
+            assert frame.locator("body").evaluate("node => getComputedStyle(node).color") == "rgb(10, 20, 30)", f"Local CSS missing: {frame.locator('body').inner_html()} / {page.locator('iframe.document-preview').get_attribute('srcdoc')}"
             expect(frame.locator("script,iframe,form")).to_have_count(0)
             assert frame.locator("a").get_attribute("href") is None
             assert page.evaluate("window.pwned") is None

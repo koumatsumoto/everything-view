@@ -102,9 +102,8 @@ export function createTree(
     element("folder-name").textContent = state.root?.name ?? "ファイルをすぐに確認。";
     element("location").textContent = state.root?.displayPath ?? "HOMEを検索して始めてください。";
     element("repo").textContent = state.root
-      ? state.repository
-        ? `Git · ${state.repository}   ● 変更あり`
-        : "Git管理外"
+      ? (state.gitMessage ??
+        (state.repository ? `Git · ${state.repository}   ● 変更あり` : "Git管理外"))
       : "";
     element<HTMLButtonElement>("parent").disabled = !state.root?.canParent;
     element("folder-name").oncontextmenu = state.root

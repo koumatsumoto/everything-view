@@ -17,6 +17,7 @@ export interface State {
   root: { id: string; name: string; displayPath: string; canParent: boolean } | null;
   selected: { id: string; name: string } | null;
   repository: string | null;
+  gitMessage?: string | null;
   diffMode: boolean;
 }
 export interface Entry {

@@ -26,14 +26,28 @@ export async function startServer(options: ServerOptions = {}) {
     "__EV_SESSION__",
     token,
   );
-  for (const name of await readdir(path.join(webRoot, "assets")))
-    if (/^[\w.-]+$/u.test(name))
-      assets.set(`/assets/${name}`, await readFile(path.join(webRoot, "assets", name)));
+  async function loadAssets(directory: string, prefix: string): Promise<void> {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      if (!/^[\w.-]+$/u.test(entry.name)) continue;
+      const filename = path.join(directory, entry.name),
+        url = `${prefix}/${entry.name}`;
+      if (entry.isDirectory()) await loadAssets(filename, url);
+      else if (entry.isFile()) assets.set(url, await readFile(filename));
+    }
+  }
+  await loadAssets(path.join(webRoot, "assets"), "/assets");
   let repo: string | null = null,
     changes: GitChange[] = [];
+  let gitMessage: string | null = null;
   const refresh = async () => {
     repo = workspace.root ? await detectRepository(workspace.root) : null;
-    changes = repo && workspace.root ? await getStatus(repo, workspace.root) : [];
+    gitMessage = null;
+    try {
+      changes = repo && workspace.root ? await getStatus(repo, workspace.root) : [];
+    } catch {
+      changes = [];
+      gitMessage = "Git状態を取得できません。ファイル閲覧は利用できます。";
+    }
   };
   const state = () => ({
     root: workspace.root
@@ -48,6 +62,7 @@ export async function startServer(options: ServerOptions = {}) {
       ? { id: workspace.id(workspace.selected), name: path.basename(workspace.selected) }
       : null,
     repository: repo ? path.basename(repo) : null,
+    gitMessage,
     diffMode: options.diff ?? false,
   });
   await refresh();
@@ -189,7 +204,9 @@ export async function startServer(options: ServerOptions = {}) {
         ? "text/javascript"
         : request.url!.endsWith(".css")
           ? "text/css"
-          : "application/octet-stream";
+          : request.url!.endsWith(".wasm")
+            ? "application/wasm"
+            : "application/octet-stream";
     response.writeHead(200, { "Content-Type": type });
     response.end(asset);
   });

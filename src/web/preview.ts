@@ -63,6 +63,7 @@ export function safeCss(css: string): string {
 }
 async function isolatedMarkup(html: string, id: string): Promise<HTMLIFrameElement> {
   const clean = DOMPurify.sanitize(html, {
+    FORCE_BODY: true,
     ADD_TAGS: ["link"],
     ADD_ATTR: ["rel"],
     FORBID_TAGS: [
@@ -82,8 +83,18 @@ async function isolatedMarkup(html: string, id: string): Promise<HTMLIFrameEleme
       "video",
       "audio",
       "source",
+      "dialog",
     ],
-    FORBID_ATTR: ["srcset", "formaction", "action", "ping", "target", "download", "autofocus"],
+    FORBID_ATTR: [
+      "srcset",
+      "formaction",
+      "action",
+      "ping",
+      "target",
+      "download",
+      "autofocus",
+      "contenteditable",
+    ],
     ALLOW_DATA_ATTR: false,
   });
   const doc = new DOMParser().parseFromString(clean, "text/html");
@@ -175,6 +186,10 @@ export async function renderPreview(content: Content, id: string): Promise<HTMLE
     wrapper.className = "pdf-preview";
     const loadingTask = getDocument({
       data: bytes(content.data),
+      cMapUrl: new URL("/assets/pdfjs/cmaps/", location.href).href,
+      cMapPacked: true,
+      standardFontDataUrl: new URL("/assets/pdfjs/standard_fonts/", location.href).href,
+      wasmUrl: new URL("/assets/pdfjs/wasm/", location.href).href,
       enableXfa: false,
       disableFontFace: true,
       useSystemFonts: true,
