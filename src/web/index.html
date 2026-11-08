@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="ev-session" content="__EV_SESSION__" />
+    <title>Everything View</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/">ev<span>Everything View</span></a
+      ><span class="read-only">閲覧専用 · ローカル</span><button id="refresh">↻ 更新</button>
+    </header>
+    <section class="search">
+      <form id="search-form">
+        <input
+          id="query"
+          type="search"
+          autocomplete="off"
+          placeholder="HOMEをファイル名・パスの一部で検索…"
+          aria-label="HOMEを検索"
+        /><button>HOMEを検索</button>
+      </form>
+      <div id="results" aria-live="polite"></div>
+    </section>
+    <main>
+      <aside>
+        <div class="folder-heading">
+          <button id="parent" title="親を一段表示">↑</button>
+          <div>
+            <strong id="folder-name">ファイルをすぐに確認。</strong
+            ><small id="location">フォルダを指定するか、HOMEを検索してください。</small>
+          </div>
+        </div>
+        <div id="repo"></div>
+        <nav id="tree" aria-label="ファイルツリー"></nav>
+      </aside>
+      <section class="viewer">
+        <div class="file-bar">
+          <strong id="file-name">Everything View</strong>
+          <div class="modes">
+            <button data-mode="preview">プレビュー</button><button data-mode="code">コード</button
+            ><button data-mode="diff">差分</button>
+          </div>
+        </div>
+        <div id="diff-options" hidden>
+          <label
+            >比較対象
+            <select id="stage">
+              <option value="unstaged">未ステージ · index → 作業ツリー</option>
+              <option value="staged">ステージ済み · HEAD → index</option>
+            </select></label
+          >
+        </div>
+        <div id="content">
+          <div class="empty">
+            <div class="empty-icon">↗</div>
+            <h1>ファイルを見る。<br />それだけを、手軽に。</h1>
+            <p>左のツリーからファイルを選んでください。<br />内容はこの端末の外へ送信しません。</p>
+          </div>
+        </div>
+        <button id="external" hidden>
+          HTMLを外部ブラウザで開く（スクリプトが動く場合があります）
+        </button>
+      </section>
+    </main>
+    <div id="status" role="status"></div>
+    <div id="context-menu" role="menu" hidden></div>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
