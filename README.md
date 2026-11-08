@@ -63,7 +63,8 @@ other Host headers, including the numeric IP hostname, are intentionally rejecte
 - Diff shows **unstaged: index → working tree** or **staged: HEAD → index**, with
   before on the left and after on the right. Untracked files are empty → current
   on the unstaged side. Deleted files, rename sources, unborn HEAD, binary content,
-  and unmerged files are handled explicitly. Everything View never stages,
+  and unmerged files are handled explicitly. A rename source outside the visible top
+  is never read; it is displayed as an addition if that source is reported by Git. Everything View never stages,
   commits, saves, or updates the Git index.
 - Refresh reloads Git, the tree, and the selected file. Tree expansion is reset.
   There is no filesystem watcher, automatic reload, background daemon, or reuse.

@@ -430,3 +430,17 @@ select {
     font-size: 26px;
   }
 }
+
+.diff-notice {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.diff-notice > .message {
+  margin: 0;
+  padding: 12px 24px;
+}
+.diff-notice > .diff-grid {
+  flex: 1;
+  min-height: 0;
+}

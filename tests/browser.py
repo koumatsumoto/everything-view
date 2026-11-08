@@ -88,6 +88,8 @@ with tempfile.TemporaryDirectory(prefix="ev-browser-") as temp:
             expect(frame.locator("script,iframe,form")).to_have_count(0)
             assert frame.locator("a").get_attribute("href") is None
             assert page.evaluate("window.pwned") is None
+            assert frame.locator("body").evaluate("node => { try { return parent.document.body ? 'read' : 'empty'; } catch { return 'blocked'; } }") == "blocked", "Opaque preview could access parent DOM"
+            assert frame.locator("body").evaluate("(node, origin) => fetch(origin + '/api', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({op:'state'})}).then(response => response.status).catch(() => 'blocked')", url) == "blocked", "Preview could call the app API"
             choose("readme.md")
             expect(page.frame_locator("iframe.document-preview").locator("h1")).to_have_text("Safe Markdown")
             choose("pixel.png")
@@ -106,8 +108,13 @@ with tempfile.TemporaryDirectory(prefix="ev-browser-") as temp:
             (folder / "new-file.txt").write_text("new")
             page.get_by_role("button", name="↻ 更新").click()
             expect(page.locator("#tree")).to_contain_text("new-file.txt")
-            choose("nested")
-            expect(page.locator("#tree")).to_contain_text("child.txt")
+            folder_button = page.locator("#tree .tree-entry").filter(has=page.locator("span", has_text=re.compile("^nested$")))
+            folder_button.dblclick()
+            child_button = page.locator("#tree .tree-entry").filter(has=page.locator("span", has_text=re.compile("^child.txt$")))
+            expect(child_button).to_have_count(1)
+            if folder_button.get_attribute("aria-expanded") != "true":
+                folder_button.click()
+            expect(child_button).to_be_visible()
             page.locator("#tree .tree-entry").filter(has=page.locator("span", has_text=re.compile("^nested$"))).click(button="right")
             page.get_by_role("menuitem", name="ここをトップにして表示").click()
             expect(page.locator("#folder-name")).to_have_text("nested")

@@ -10,6 +10,7 @@ let selected: Pick<Entry, "id" | "name"> | null = null,
   busy = false,
   preferDiff = false;
 const content = element("content");
+const homeView = content.firstElementChild!.cloneNode(true);
 function message(text: string) {
   const p = document.createElement("p");
   p.className = "message";
@@ -38,6 +39,7 @@ async function show() {
         after: string;
         binary: boolean;
         message?: string;
+        notice?: string;
       }>("diff", { id: selected.id, stage: element<HTMLSelectElement>("stage").value });
       if (current !== generation) return;
       if (result.message) {
@@ -45,6 +47,15 @@ async function show() {
         return;
       }
       view = renderDiff(result.before, result.after);
+      if (result.notice) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "diff-notice";
+        const notice = document.createElement("p");
+        notice.className = "message";
+        notice.textContent = result.notice;
+        wrapper.append(notice, view);
+        view = wrapper;
+      }
     } else {
       const file = await api<Content>("read", { id: selected.id });
       if (current !== generation) return;
@@ -75,7 +86,11 @@ async function apply(state: State) {
   if (selected) await show();
   else {
     element("file-name").textContent = "Everything View";
-    message("左のツリーからファイルを選んでください。フォルダを右クリックするとトップにできます。");
+    if (state.root)
+      message(
+        "左のツリーからファイルを選んでください。フォルダを右クリックするとトップにできます。",
+      );
+    else content.replaceChildren(homeView.cloneNode(true));
   }
 }
 async function navigate(op: string, id?: string) {

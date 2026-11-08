@@ -62,12 +62,15 @@ export function createTree(
       group.append(button);
       container.append(group);
       let loaded = false,
-        expanded = false;
+        expanded = false,
+        loading = false;
       const nested = document.createElement("div");
       nested.className = "tree-children";
       nested.hidden = true;
       group.append(nested);
       button.onclick = async () => {
+        if (loading) return;
+        loading = true;
         try {
           if (entry.directory) {
             if (!loaded) {
@@ -85,6 +88,8 @@ export function createTree(
           }
         } catch (error) {
           container.dispatchEvent(new CustomEvent("tree-error", { bubbles: true, detail: error }));
+        } finally {
+          loading = false;
         }
       };
       button.oncontextmenu = (event) => menu(event, entry);

@@ -2,12 +2,19 @@ import { execFile } from "node:child_process";
 import path from "node:path";
 import { isUtf8 } from "node:buffer";
 import { readRegular } from "./files.js";
-import { inside } from "./workspace.js";
+import { inside, UserError } from "./workspace.js";
 export interface GitChange {
   path: string;
   originalPath?: string;
   indexStatus: string;
   worktreeStatus: string;
+}
+export interface GitDiff {
+  before: string;
+  after: string;
+  binary: boolean;
+  message?: string;
+  notice?: string;
 }
 const LIMIT = 2 * 1024 * 1024;
 async function git(repo: string, args: string[]): Promise<Buffer> {
@@ -94,7 +101,9 @@ export async function readDiff(
   stage: "staged" | "unstaged",
   changes: GitChange[],
   root?: string,
-) {
+): Promise<GitDiff> {
+  const boundary = root ?? repo;
+  if (!inside(boundary, file)) throw new UserError("比較対象が表示範囲外です。");
   const change = changes.find((item) => item.path === file);
   if (
     change &&
@@ -109,8 +118,13 @@ export async function readDiff(
       message: "競合が未解決です。Everything Viewの外で解決してください。",
     };
   let before: Buffer, after: Buffer;
+  let notice: string | undefined;
   if (stage === "staged") {
-    before = await blob(repo, "HEAD", change?.originalPath ?? file);
+    const source = change?.originalPath ?? file;
+    if (!inside(boundary, source)) {
+      before = Buffer.alloc(0);
+      notice = "移動元が表示範囲外のため、変更前は読み込まず追加として表示します。";
+    } else before = await blob(repo, "HEAD", source);
     after = await blob(repo, "", file);
   } else {
     before = change?.indexStatus === "?" ? Buffer.alloc(0) : await blob(repo, "", file);
@@ -128,5 +142,10 @@ export async function readDiff(
       binary: true,
       message: "バイナリの差分はテキスト表示できません。",
     };
-  return { before: before.toString("utf8"), after: after.toString("utf8"), binary: false };
+  return {
+    before: before.toString("utf8"),
+    after: after.toString("utf8"),
+    binary: false,
+    ...(notice ? { notice } : {}),
+  };
 }

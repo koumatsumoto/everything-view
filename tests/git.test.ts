@@ -110,3 +110,35 @@ it("never invokes configured fsmonitor, textconv, or external diff", async () =>
   await readDiff(root, path.join(root, "file"), "unstaged", changes, root);
   await expect(stat(marker)).rejects.toThrow();
 });
+it("does not disclose a rename source outside the visible top", async () => {
+  const root = await repo();
+  const sub = path.join(root, "visible");
+  await mkdir(sub);
+  const original = path.join(root, "private-old.txt"),
+    moved = path.join(sub, "moved.txt");
+  await writeFile(original, "common one\ncommon two\ncommon three\nprivate-old-secret\n");
+  git(root, "add", ".");
+  git(root, "commit", "-qm", "base");
+  await rename(original, moved);
+  await writeFile(moved, "common one\ncommon two\ncommon three\npublic current\n");
+  git(root, "add", "-A");
+  const scoped = await getStatus(root, sub);
+  const all = await getStatus(root, root);
+  expect(all.find((change) => change.path === moved)?.originalPath).toBe(original);
+  const scopedDiff = await readDiff(root, moved, "staged", scoped, sub);
+  expect(scopedDiff.before).not.toContain("private-old-secret");
+  expect(scopedDiff.after).toContain("public current");
+  // Defensive enforcement still holds if a Git version/status provider includes
+  // the original path even for a destination-only subtree query.
+  const defensive = await readDiff(
+    root,
+    moved,
+    "staged",
+    all.filter((change) => change.path === moved),
+    sub,
+  );
+  expect(defensive.before).toBe("");
+  expect(defensive.after).toContain("public current");
+  expect(defensive.notice).toContain("表示範囲外");
+  await expect(readDiff(root, original, "staged", all, sub)).rejects.toThrow();
+});
